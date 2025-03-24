@@ -1,0 +1,221 @@
+---
+title: "unintegrated_visualisation"
+author: "Siwanart Ma"
+date: "2025-03-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(patchwork)
+```
+
+# Load the 3 Seurat objects
+```{r}
+# Increase the memory
+mem.maxVSize(vsize = 60000)
+
+# Load 4-6 weeks Seurat object
+load("/Users/mayongzhi/Desktop/researchProject/integration/originals/human4_6W.RData")
+ls()
+
+# Load 7-11 weeks Seurat object
+load("/Users/mayongzhi/Desktop/researchProject/integration/originals/human7_11W.RData")
+ls()
+human7_11W <- seurat
+rm(seurat)
+
+# Load 12-20 weeks Seurat object
+load("/Users/mayongzhi/Desktop/researchProject/integration/originals/human12_20W.RData")
+ls()
+human12_20W <- humanpancreas.combined.sct
+rm(humanpancreas.combined.sct)
+```
+
+# Visualisation
+## human4_6W
+
+The Seurat object is filtered by
+nCount_RNA > 4000 & nCount_RNA < 50000 &
+nFeature_RNA > 500 & nFeature_RNA < 8000 &
+percent.mt < 15
+
+Hence, we don't do filtering again.
+
+```{r}
+p <- VlnPlot(human4_6W, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+             ncol = 3, group.by = "days", pt.size = 0)
+
+# Apply boxplot to each plot separately
+p <- lapply(p, function(x) x + geom_boxplot(width = 0.1, outlier.shape = NA))
+
+# Print the updated plots
+patchwork::wrap_plots(p, ncol = 3) + theme_minimal()
+
+```
+
+
+Add a column "time" to mark object source for integration
+
+```{r}
+human4_6W$time <- "4_6"
+```
+
+## human7_11W
+
+The Seurat object is filtered by
+nCount_RNA > 4000 & nCount_RNA < 50000 &
+nFeature_RNA > 500 & nFeature_RNA < 8000 &
+percent.mt < 15
+
+Hence, we don't do filtering again.
+
+```{r}
+# Reorder the 'days' variable to follow the desired order
+human7_11W$days <- factor(human7_11W$days, levels = c("W7", "W8", "W9", "W10", "W11"))
+
+p <- VlnPlot(human7_11W, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+             ncol = 3, group.by = "days", pt.size = 0)
+
+# Apply boxplot to each plot separately
+p <- lapply(p, function(x) x + geom_boxplot(width = 0.1, outlier.shape = NA))
+
+# Print the updated plots
+patchwork::wrap_plots(p, ncol = 3) + theme_minimal()
+
+# Add a column "time" to mark object source for integration
+human7_11W$time <- "7_11"
+```
+## human8_20W
+
+The Seurat object is filtered by
+nCount_RNA > 500 &
+nFeature_RNA > 250 &
+log10GenesPerUMI > 0.75 &
+percent.mt < 25
+
+```{r}
+human12_20W<- subset(human12_20W, subset = nCount_RNA > 500 & nFeature_RNA > 250 & log10GenesPerUMI > 0.75 & percent.mt < 25)
+```
+
+```{r}
+p <- VlnPlot(human12_20W, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+             ncol = 3, group.by = "Gestation_Age", pt.size = 0)
+
+# Apply boxplot to each plot separately
+p <- lapply(p, function(x) x + geom_boxplot(width = 0.1, outlier.shape = NA))
+
+# Print the updated plots
+patchwork::wrap_plots(p, ncol = 3) + theme_minimal()
+
+# Add a column "time" to mark object source for integration
+human12_20W$time <- "12_20"
+```
+## The dimension of each Seurat object
+```{r}
+print("human4_6W")
+print(paste("Number of genes:", dim(human4_6W)[1], "; Number of cells:", dim(human4_6W)[2]))
+
+print("human7_11W")
+print(paste("Number of genes:", dim(human7_11W)[1], "; Number of cells:", dim(human7_11W)[2]))
+
+print("human12_20W")
+print(paste("Number of genes:", dim(human12_20W)[1], "; Number of cells:", dim(human12_20W)[2]))
+```
+## Unify the format of 3 Seurat objects
+```{r}
+library(dplyr)
+
+# Modify the "Gestation_Age" column in metadata
+human12_20W@meta.data$Gestation_Age <- human12_20W@meta.data$Gestation_Age %>%
+  as.character() %>%  # Ensure it's a character vector
+  gsub("PCW", "", .) %>%  # Remove "PCW"
+  paste0("W", .)  # Add "W" at the beginning
+
+# Convert to a factor with a specific order
+human12_20W@meta.data$Gestation_Age <- factor(human12_20W@meta.data$Gestation_Age, 
+                                         levels = c("W12", "W13", "W13_1", "W14", 
+                                                    "W15", "W18", "W19", "W20"))
+
+# Set the new identity
+Idents(human12_20W) <- human12_20W@meta.data$Gestation_Age
+
+# Rename "Gestation_Age" with "days"
+colnames(human12_20W@meta.data)[colnames(human12_20W@meta.data) == "Gestation_Age"] <- "days"
+```
+
+```{r}
+library(ggplot2)
+
+# Merge the Seurat objects
+merged_object <- merge(x = human4_6W, y=list(human7_11W, human12_20W))
+saveRDS(merged_object, file = "../outputs/merged_object.rds")
+
+# Convert to a factor with a specific order
+merged_object@meta.data$days <- factor(merged_object@meta.data$days, 
+                                         levels = c("W4", "W5", "W6", 
+                                                    "W7", "W8", "W9", "W10", "W11",
+                                                    "W12", "W13", "W13_1", "W14", "W15", "W18", "W19", "W20"))
+
+```
+```{r}
+# Plot violin plots
+p <- VlnPlot(merged_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+             ncol = 1, group.by = "days", pt.size = 0) 
+
+# Convert to list and apply boxplot separately
+plots <- lapply(p, function(x) x + geom_boxplot(width = 0.1, outlier.shape = NA, show.legend = FALSE))
+plots
+```
+```{r}
+four_six <- RunPCA(human4_6W, verbose = FALSE)
+four_six <- RunUMAP(human4_6W, dims = 1:30, verbose = FALSE)
+
+four_six <- FindNeighbors(human4_6W, dims = 1:30, verbose = FALSE)
+four_six <- FindClusters(human4_6W, verbose = FALSE)
+DimPlot(four_six, label = TRUE)
+```
+
+```{r}
+seven_eleven <- RunPCA(human7_11W, verbose = FALSE)
+seven_eleven <- RunUMAP(human7_11W, dims = 1:30, verbose = FALSE)
+seven_eleven <- FindNeighbors(human7_11W, dims = 1:30, verbose = FALSE)
+seven_eleven <- FindClusters(human7_11W, verbose = FALSE)
+DimPlot(seven_eleven, label = TRUE)
+```
+
+```{r}
+twelve_twenty <- RunPCA(human12_20W, verbose = FALSE)
+twelve_twenty <- RunUMAP(human12_20W, dims = 1:30, verbose = FALSE)
+twelve_twenty <- FindNeighbors(human12_20W, dims = 1:30, verbose = FALSE)
+twelve_twenty <- FindClusters(human12_20W, verbose = FALSE)
+DimPlot(twelve_twenty, label = TRUE)
+```
+
+```{r}
+class(merged_object[["RNA"]])
+merged_object[["RNA"]] <- split(merged_object[["RNA"]], f = merged_object$time)
+merged_object.
+class(merged_object[["RNA"]])
+Layers(merged_object[["RNA"]])
+```
+
+```{r}
+features <- SelectIntegrationFeatures(
+  c(human4_6W, human7_11W, human12_20W),
+  nfeatures=2000,
+  assay = NULL, 
+  verbose = TRUE
+)
+```
+
+```{r}
+features
+```
+
+

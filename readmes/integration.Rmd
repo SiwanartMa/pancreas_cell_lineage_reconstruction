@@ -1,0 +1,116 @@
+---
+title: "Integrate Seurat objects from Ma 2023 and Olaniru 2023"
+author: "Siwanart Ma"
+date: "2025-03-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Aim
+This script aim to integrate data from Ma et al 2023 and Olaniru et al 2023
+
+# Load libraries
+```{r}
+#install.packages("SeuratObject")
+library(Seurat)
+library(SeuratObject)
+```
+
+# Load Seurat objects
+```{r}
+# Increase the memory
+mem.maxVSize(vsize = 32000)
+
+# Load 4-6 weeks Seurat object
+load("human4_6W.RData")
+ls()
+human4_6W <- seurat
+rm(seurat)
+
+# Load 7-11 weeks Seurat object
+load("human7_11W.RData")
+ls()
+human7_11W <- seurat
+rm(seurat)
+
+# Load 8-20 weeks Seurat object
+load("human8_20W.RData")
+ls()
+human8_20W <- humanpancreas.combined.sct
+rm(humanpancreas.combined.sct)
+
+# Seurat objects in the work space
+ls()
+```
+
+# Normalize data
+As the three Seurat objects have SCT already, which means they are normalized, we integrate by their SCT directly.
+
+```{r}
+DefaultAssay(human4_6W) <- "RNA"
+DefaultAssay(human7_11W) <- "RNA"
+DefaultAssay(human8_20W) <- "RNA"
+```
+
+```{r}
+# Check available SCT models:
+levels(human8_20W@assays$SCT)
+```
+
+```{r}
+# Take variable features from SCT models explicitly
+VariableFeatures(human8_20W) <- SelectIntegrationFeatures(
+    object.list = SplitObject(human8_20W, split.by = "orig.ident"),
+    nfeatures = 3000
+)
+```
+
+```{r}
+objects_list <- list(human4_6W, human7_11W, human8_20W)
+
+integration_features <- SelectIntegrationFeatures(
+  object.list = objects_list,
+  nfeatures = 3000)
+
+# Install glmGamPoi for optimal speed first (recommended!)
+#install.packages('BiocManager')
+#BiocManager::install('glmGamPoi')
+
+# Load the library
+library(glmGamPoi)
+
+# Clearly increase globals max size to 32GB
+options(future.globals.maxSize = 32000 * 1024^2)
+
+# Re-run SCTransform clearly for each object:
+objects_list <- lapply(objects_list, function(x){
+    SCTransform(x, 
+                residual.features = integration_features, 
+                verbose = FALSE)
+})
+
+objects_list <- PrepSCTIntegration(
+  object.list = objects_list,
+  anchor.features = integration_features,
+  verbose = TRUE)
+
+anchors <- FindIntegrationAnchors(object.list = objects_list,
+                                  normalization.method = "SCT",
+                                  anchor.features = integration_features)
+
+```
+
+```{r}
+# Assume integration_features are selected already:
+missing_features <- lapply(objects_list, function(x) {
+  setdiff(integration_features, rownames(x@assays$SCT))
+})
+
+missing_features
+
+```
+
+
