@@ -153,9 +153,9 @@ colnames(human12_20W@meta.data)[colnames(human12_20W@meta.data) == "Gestation_Ag
 library(ggplot2)
 
 # Merge the Seurat objects
-merged_object <- merge(x = human4_6W, y=list(human7_11W, human12_20W))
-saveRDS(merged_object, file = "../outputs/merged_object.rds")
-
+#merged_object <- merge(x = human4_6W, y=list(human7_11W, human12_20W))
+#saveRDS(merged_object, file = "../outputs/merged_object.rds")
+merged_object <- readRDS("../outputs/merged_object.rds")
 # Convert to a factor with a specific order
 merged_object@meta.data$days <- factor(merged_object@meta.data$days, 
                                          levels = c("W4", "W5", "W6", 
@@ -163,6 +163,8 @@ merged_object@meta.data$days <- factor(merged_object@meta.data$days,
                                                     "W12", "W13", "W13_1", "W14", "W15", "W18", "W19", "W20"))
 
 ```
+
+
 ```{r}
 # Plot violin plots
 p <- VlnPlot(merged_object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
@@ -170,6 +172,12 @@ p <- VlnPlot(merged_object, features = c("nFeature_RNA", "nCount_RNA", "percent.
 
 # Convert to list and apply boxplot separately
 plots <- lapply(p, function(x) x + geom_boxplot(width = 0.1, outlier.shape = NA, show.legend = FALSE))
+
+# Save the plots
+for (i in seq_along(plots)) {
+  ggsave(filename = paste0("../outputs/plot_", i, ".png"), plot = plots[[i]], width = 8, height = 6, dpi = 300)
+}
+
 plots
 ```
 ```{r}
@@ -178,7 +186,11 @@ four_six <- RunUMAP(human4_6W, dims = 1:30, verbose = FALSE)
 
 four_six <- FindNeighbors(human4_6W, dims = 1:30, verbose = FALSE)
 four_six <- FindClusters(human4_6W, verbose = FALSE)
-DimPlot(four_six, label = TRUE)
+DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W")
+ggsave("../outputs/UMAP4_6W.png",
+       plot = DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W"),
+       width = 8, height = 6, dpi = 300)
+DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W")
 ```
 
 ```{r}
@@ -186,7 +198,10 @@ seven_eleven <- RunPCA(human7_11W, verbose = FALSE)
 seven_eleven <- RunUMAP(human7_11W, dims = 1:30, verbose = FALSE)
 seven_eleven <- FindNeighbors(human7_11W, dims = 1:30, verbose = FALSE)
 seven_eleven <- FindClusters(human7_11W, verbose = FALSE)
-DimPlot(seven_eleven, label = TRUE)
+ggsave("../outputs/UMAP7_11W.png",
+       plot = DimPlot(seven_eleven, label = TRUE) + ggtitle("UMAP for human7_11W"),
+       width = 8, height = 6, dpi = 300)
+DimPlot(seven_eleven, label = TRUE)+ ggtitle("UMAP for human7_11W")
 ```
 
 ```{r}
@@ -194,28 +209,101 @@ twelve_twenty <- RunPCA(human12_20W, verbose = FALSE)
 twelve_twenty <- RunUMAP(human12_20W, dims = 1:30, verbose = FALSE)
 twelve_twenty <- FindNeighbors(human12_20W, dims = 1:30, verbose = FALSE)
 twelve_twenty <- FindClusters(human12_20W, verbose = FALSE)
-DimPlot(twelve_twenty, label = TRUE)
+ggsave("../outputs/UMAP12_20W.png",
+       plot = DimPlot(twelve_twenty, label = TRUE) + ggtitle("UMAP for human12_20W"),
+       width = 8, height = 6, dpi = 300)
+DimPlot(twelve_twenty, label = TRUE)+ ggtitle("UMAP for human12_20W")
+```
+
+Visualize the number of cell counts in each period
+
+```{r}
+# Reorder the time in merged_object
+merged_object$time <- factor(merged_object$time, levels = c("4_6", "7_11", "12_20"))
+
+# Plot
+plot <- merged_object@meta.data %>% 
+  ggplot(aes(x=time, fill=time)) + 
+  geom_bar(color="black") +
+  stat_count(geom = "text", colour = "black", size = 3.5, 
+            aes(label = ..count..),
+            position=position_stack(vjust=0.5))+
+  theme_classic() +
+  theme(plot.title = element_text(hjust=0.5, face="bold")) +
+  ggtitle("Number of Cells per Period")
+
+# Save the plot
+ggsave("../outputs/nCellsPeriod.png", plot = plot,
+       width = 8, height = 6, dpi = 300)
+
+plot
 ```
 
 ```{r}
-class(merged_object[["RNA"]])
-merged_object[["RNA"]] <- split(merged_object[["RNA"]], f = merged_object$time)
-merged_object.
-class(merged_object[["RNA"]])
-Layers(merged_object[["RNA"]])
+# Plot
+plot <- merged_object@meta.data %>% 
+  ggplot(aes(x=days, fill=days)) + 
+  geom_bar(color="black") +
+  stat_count(geom = "text", colour = "black", size = 3.5, 
+            aes(label = ..count..),
+            position=position_stack(vjust=0.5), angle = 90)+
+  theme_classic() +
+  theme(plot.title = element_text(hjust=0.5, face="bold")) +
+  ggtitle("Number of Cells per Week")
+
+# Save the plot
+ggsave("../outputs/nCellsWeek.png", plot = plot,
+       width = 8, height = 6, dpi = 300)
+
+plot
 ```
 
 ```{r}
-features <- SelectIntegrationFeatures(
-  c(human4_6W, human7_11W, human12_20W),
-  nfeatures=2000,
-  assay = NULL, 
-  verbose = TRUE
-)
+merged_object@meta.data %>% 
+    ggplot(aes(color=time, x=nCount_RNA, fill= time)) + 
+    geom_density(alpha = 0.2) + 
+    theme_classic() +
+    scale_x_log10()
 ```
 
 ```{r}
-features
+merged_object@meta.data %>% 
+    ggplot(aes(color=time, x=nFeature_RNA, fill= time)) + 
+    geom_density(alpha = 0.2) + 
+    theme_classic() +
+    scale_x_log10()
+```
+
+```{r}
+merged_object@meta.data %>% 
+    ggplot(aes(color=time, x=percent.mt, fill= time)) + 
+    geom_density(alpha = 0.2) + 
+    theme_classic() +
+    scale_x_log10()
+
+# geom_density: creaty a density plot. alpha = transparency
+# scale_x_log10: Transforms the x-axis to a logarithmic scale (base 10), so the large values are compressed. Good for visualizing skewed data
+
+```
+```{r}
+p <- FeatureScatter(merged_object, feature1 = "percent.mt", feature2 ="nFeature_RNA" , group.by="orig.ident",split.by="time", ncol = 3) 
+
+ggsave("../outputs/FeaSca_mtF.png",
+       plot = p,
+       width = 12, height = 6, dpi = 300) 
+p
+
+```
+
+```{r}
+p <- FeatureScatter(merged_object, feature1 = "nCount_RNA", feature2 ="nFeature_RNA" , group.by="orig.ident",split.by="time", ncol = 3) 
+
+p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+          
+ggsave("../outputs/FeaSca_CF.png",
+       plot = p,
+       width = 12, height = 6, dpi = 300) 
+p
 ```
 
 
