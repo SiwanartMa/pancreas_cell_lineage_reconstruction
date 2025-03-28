@@ -40,8 +40,8 @@ features <- SelectIntegrationFeatures(
 
 
 ```{r}
-obj <- readRDS("../outputs/merged_object.rds")
-obj
+merged_object <- readRDS("../outputs/merged_object.rds")
+merged_object
 ```
 
 
@@ -81,7 +81,7 @@ features <- SelectIntegrationFeatures(
 VariableFeatures(merged_object) <- features
 
 merged_object <- RunPCA(merged_object, features = VariableFeatures(merged_object))
-
+saveRDS(merged_object, "../outputs/merged_object_pca.rds")
 integrated <- IntegrateLayers(
   object = merged_object, method = CCAIntegration,
   normalization.method = "SCT",
