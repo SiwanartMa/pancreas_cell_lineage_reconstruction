@@ -129,7 +129,20 @@ print(paste("Number of genes:", dim(human7_11W)[1], "; Number of cells:", dim(hu
 print("human12_20W")
 print(paste("Number of genes:", dim(human12_20W)[1], "; Number of cells:", dim(human12_20W)[2]))
 ```
+
+
 ## Unify the format of 3 Seurat objects
+
+```{r}
+table(human12_20W@meta.data$Gestation_Age)
+```
+
+According to Olaniru et al. 2023, there are 7168 cells in 13 PCW. Hence, we combine the cells from 13 PCW and 13 PCW_1
+
+```{r}
+human12_20W@meta.data$Gestation_Age[human12_20W@meta.data$Gestation_Age == "13PCW_1"] <- "13PCW"
+```
+
 ```{r}
 library(dplyr)
 
@@ -141,7 +154,7 @@ human12_20W@meta.data$Gestation_Age <- human12_20W@meta.data$Gestation_Age %>%
 
 # Convert to a factor with a specific order
 human12_20W@meta.data$Gestation_Age <- factor(human12_20W@meta.data$Gestation_Age, 
-                                         levels = c("W12", "W13", "W13_1", "W14", 
+                                         levels = c("W12", "W13", "W14", 
                                                     "W15", "W18", "W19", "W20"))
 
 # Set the new identity
@@ -154,12 +167,11 @@ colnames(human12_20W@meta.data)[colnames(human12_20W@meta.data) == "Gestation_Ag
 
 ```{r}
 four_six <- RunPCA(human4_6W, verbose = FALSE)
-four_six <- RunUMAP(human4_6W, dims = 1:30, verbose = FALSE)
+four_six <- RunUMAP(human4_6W, dims = 1:50, verbose = FALSE)
 
-four_six <- FindNeighbors(human4_6W, dims = 1:30, verbose = FALSE)
+four_six <- FindNeighbors(human4_6W, dims = 1:50, verbose = FALSE)
 four_six <- FindClusters(human4_6W, verbose = FALSE)
-DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W")
-ggsave("../outputs/UMAP4_6W.png",
+ggsave("../outputs/unintegrated_figure/UMAP4_6W.png",
        plot = DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W"),
        width = 8, height = 6, dpi = 300)
 DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W")
@@ -167,10 +179,10 @@ DimPlot(four_six, label = TRUE) + ggtitle("UMAP for human4_6W")
 
 ```{r}
 seven_eleven <- RunPCA(human7_11W, verbose = FALSE)
-seven_eleven <- RunUMAP(human7_11W, dims = 1:30, verbose = FALSE)
-seven_eleven <- FindNeighbors(human7_11W, dims = 1:30, verbose = FALSE)
+seven_eleven <- RunUMAP(human7_11W, dims = 1:50, verbose = FALSE)
+seven_eleven <- FindNeighbors(human7_11W, dims = 1:50, verbose = FALSE)
 seven_eleven <- FindClusters(human7_11W, verbose = FALSE)
-ggsave("../outputs/UMAP7_11W.png",
+ggsave("../outputs/unintegrated_figure/UMAP7_11W.png",
        plot = DimPlot(seven_eleven, label = TRUE) + ggtitle("UMAP for human7_11W"),
        width = 8, height = 6, dpi = 300)
 DimPlot(seven_eleven, label = TRUE)+ ggtitle("UMAP for human7_11W")
@@ -178,10 +190,10 @@ DimPlot(seven_eleven, label = TRUE)+ ggtitle("UMAP for human7_11W")
 
 ```{r}
 twelve_twenty <- RunPCA(human12_20W, verbose = FALSE)
-twelve_twenty <- RunUMAP(human12_20W, dims = 1:30, verbose = FALSE)
-twelve_twenty <- FindNeighbors(human12_20W, dims = 1:30, verbose = FALSE)
+twelve_twenty <- RunUMAP(human12_20W, dims = 1:20, verbose = FALSE)
+twelve_twenty <- FindNeighbors(human12_20W, dims = 1:20, verbose = FALSE)
 twelve_twenty <- FindClusters(human12_20W, verbose = FALSE)
-ggsave("../outputs/UMAP12_20W.png",
+ggsave("../outputs/unintegrated_figure/UMAP12_20W.png",
        plot = DimPlot(twelve_twenty, label = TRUE) + ggtitle("UMAP for human12_20W"),
        width = 8, height = 6, dpi = 300)
 DimPlot(twelve_twenty, label = TRUE)+ ggtitle("UMAP for human12_20W")
@@ -192,14 +204,14 @@ DimPlot(twelve_twenty, label = TRUE)+ ggtitle("UMAP for human12_20W")
 library(ggplot2)
 
 # Merge the Seurat objects
-#merged_object <- merge(x = human4_6W, y=list(human7_11W, human12_20W))
-#saveRDS(merged_object, file = "../outputs/merged_object.rds")
-merged_object <- readRDS("../outputs/merged_object.rds")
+merged_object <- merge(x = human4_6W, y=list(human7_11W, human12_20W))
+#saveRDS(merged_object, file = "../outputs/merged_object_13.rds")
+merged_object <- readRDS("../outputs/merged_object_13.rds")
 # Convert to a factor with a specific order
 merged_object@meta.data$days <- factor(merged_object@meta.data$days, 
                                          levels = c("W4", "W5", "W6", 
                                                     "W7", "W8", "W9", "W10", "W11",
-                                                    "W12", "W13", "W13_1", "W14", "W15", "W18", "W19", "W20"))
+                                                    "W12", "W13", "W14", "W15", "W18", "W19", "W20"))
 
 ```
 
@@ -214,7 +226,7 @@ plots <- lapply(p, function(x) x + geom_boxplot(width = 0.1, outlier.shape = NA,
 
 # Save the plots
 for (i in seq_along(plots)) {
-  ggsave(filename = paste0("../outputs/plot_", i, ".png"), plot = plots[[i]], width = 8, height = 6, dpi = 300)
+  ggsave(filename = paste0("../outputs/unintegrated_figure/plot_", i, ".png"), plot = plots[[i]], width = 8, height = 6, dpi = 300)
 }
 
 plots
@@ -239,7 +251,7 @@ plot <- merged_object@meta.data %>%
   ggtitle("Number of Cells per Period")
 
 # Save the plot
-ggsave("../outputs/nCellsPeriod.png", plot = plot,
+ggsave("../outputs/unintegrated_figure/nCellsPeriod.png", plot = plot,
        width = 8, height = 6, dpi = 300)
 
 plot
@@ -258,7 +270,7 @@ plot <- merged_object@meta.data %>%
   ggtitle("Number of Cells per Week")
 
 # Save the plot
-ggsave("../outputs/nCellsWeek.png", plot = plot,
+ggsave("../outputs/unintegrated_figure/nCellsWeek.png", plot = plot,
        width = 8, height = 6, dpi = 300)
 
 plot
@@ -273,7 +285,7 @@ p <- merged_object@meta.data %>%
     theme_classic() +
     scale_x_log10()
 
-ggsave("../outputs/den_C.png", plot = p, width = 8, height = 6, dpi = 300 )
+ggsave("../outputs/unintegrated_figure/den_C.png", plot = p, width = 8, height = 6, dpi = 300 )
 p
 ```
 
@@ -283,7 +295,7 @@ p <- merged_object@meta.data %>%
     geom_density(alpha = 0.2) + 
     theme_classic() +
     scale_x_log10()
-ggsave("../outputs/den_F.png", plot = p, width = 8, height = 6, dpi = 300 )
+ggsave("../outputs/unintegrated_figure/den_F.png", plot = p, width = 8, height = 6, dpi = 300 )
 p
 ```
 
@@ -297,7 +309,7 @@ p <- merged_object@meta.data %>%
 # geom_density: creaty a density plot. alpha = transparency
 # scale_x_log10: Transforms the x-axis to a logarithmic scale (base 10), so the large values are compressed. Good for visualizing skewed data
 
-ggsave("../outputs/den_mt.png", plot = p, width = 8, height = 6, dpi = 300 )
+ggsave("../outputs/unintegrated_figure/den_mt.png", plot = p, width = 8, height = 6, dpi = 300 )
 p
 ```
 
@@ -308,7 +320,7 @@ Scatter plot of percent.mt and nFeature
 ```{r}
 p <- FeatureScatter(merged_object, feature1 = "percent.mt", feature2 ="nFeature_RNA" , group.by="orig.ident",split.by="time", ncol = 3) 
 
-ggsave("../outputs/FeaSca_mtF.png",
+ggsave("../outputs/unintegrated_figure/FeaSca_mtF.png",
        plot = p,
        width = 12, height = 6, dpi = 300) 
 p
@@ -317,7 +329,7 @@ p
 ```{r}
 p <- FeatureScatter(merged_object, feature1 = "percent.mt", feature2 ="nFeature_RNA" , group.by="days",split.by="time", ncol = 3) 
 
-ggsave("../outputs/FeaSca_mtF_days.png",
+ggsave("../outputs/unintegrated_figure/FeaSca_mtF_days.png",
        plot = p,
        width = 12, height = 6, dpi = 300) 
 p
@@ -329,7 +341,7 @@ p <- FeatureScatter(merged_object, feature1 = "nCount_RNA", feature2 ="nFeature_
 
 p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
           
-ggsave("../outputs/FeaSca_CF.png",
+ggsave("../outputs/unintegrated_figure/FeaSca_CF.png",
        plot = p,
        width = 12, height = 6, dpi = 300) 
 p
@@ -340,7 +352,7 @@ p <- FeatureScatter(merged_object, feature1 = "nCount_RNA", feature2 ="nFeature_
 
 p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
           
-ggsave("../outputs/FeaSca_CF_day.png",
+ggsave("../outputs/unintegrated_figure/FeaSca_CF_day.png",
        plot = p,
        width = 12, height = 6, dpi = 300) 
 p
