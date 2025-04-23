@@ -102,6 +102,7 @@ log10GenesPerUMI > 0.75 &
 percent.mt < 25
 
 ```{r}
+DefaultAssay(human12_20W) <- "SCT"
 human12_20W<- subset(human12_20W, subset = nCount_RNA > 500 & nFeature_RNA > 250 & log10GenesPerUMI > 0.75 & percent.mt < 25)
 ```
 
@@ -133,10 +134,6 @@ print(paste("Number of genes:", dim(human12_20W)[1], "; Number of cells:", dim(h
 
 ## Unify the format of 3 Seurat objects
 
-```{r}
-table(human12_20W@meta.data$Gestation_Age)
-```
-
 According to Olaniru et al. 2023, there are 7168 cells in 13 PCW. Hence, we combine the cells from 13 PCW and 13 PCW_1
 
 ```{r}
@@ -164,7 +161,22 @@ Idents(human12_20W) <- human12_20W@meta.data$Gestation_Age
 colnames(human12_20W@meta.data)[colnames(human12_20W@meta.data) == "Gestation_Age"] <- "days"
 ```
 
+## Check if every Seurat object has variable features
+```{r}
+# human4_6W
+head(VariableFeatures(human4_6W), 10)  # First 10 HVGs
+length(VariableFeatures(human4_6W))    # Total number of HVGs
 
+# human7_11W
+head(VariableFeatures(human7_11W), 10)  # First 10 HVGs
+length(VariableFeatures(human7_11W))    # Total number of HVGs
+
+# human12_20W
+head(VariableFeatures(human12_20W), 10)  # First 10 HVGs
+length(VariableFeatures(human12_20W))    # Total number of HVGs
+```
+
+## Run PCA and UMAP
 ```{r}
 four_six <- RunPCA(human4_6W, verbose = FALSE)
 four_six <- RunUMAP(human4_6W, dims = 1:50, verbose = FALSE)
@@ -188,7 +200,10 @@ ggsave("../outputs/unintegrated_figure/UMAP7_11W.png",
 DimPlot(seven_eleven, label = TRUE)+ ggtitle("UMAP for human7_11W")
 ```
 
+Cannot run this because there are multiple SCT models in the SCT assay of human12_20W.
+Will find variable when do integration.
 ```{r}
+#VariableFeatures(human12_20W) <- SelectIntegrationFeatures(object.list = list(human12_20W), nfeatures = 3000)
 twelve_twenty <- RunPCA(human12_20W, verbose = FALSE)
 twelve_twenty <- RunUMAP(human12_20W, dims = 1:20, verbose = FALSE)
 twelve_twenty <- FindNeighbors(human12_20W, dims = 1:20, verbose = FALSE)
@@ -205,8 +220,8 @@ library(ggplot2)
 
 # Merge the Seurat objects
 merged_object <- merge(x = human4_6W, y=list(human7_11W, human12_20W))
-#saveRDS(merged_object, file = "../outputs/merged_object_13.rds")
-merged_object <- readRDS("../outputs/merged_object_13.rds")
+saveRDS(merged_object, file = "../outputs/merged_object_13.rds")
+#merged_object <- readRDS("../outputs/merged_object_13.rds")
 # Convert to a factor with a specific order
 merged_object@meta.data$days <- factor(merged_object@meta.data$days, 
                                          levels = c("W4", "W5", "W6", 

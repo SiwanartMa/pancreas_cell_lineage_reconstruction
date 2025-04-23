@@ -2,15 +2,29 @@ library(Seurat)
 library(ggplot2)
 library(patchwork)
 #library(SeuratWrappers)
-mem.maxVSize(vsize = 80000)
+mem.maxVSize(vsize = 100000)
 
 # Load the integrated Seurat object
-obj <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/outputs/integrated_interactive.rds")
+obj <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/outputs/integrated.rds")
+DefaultAssay(obj) <- "integrated"
+
+# Elbow Plot
+elbow <- ElbowPlot(obj, ndims = 50, reduction = "pca")
+ggsave("/Users/mayongzhi/Desktop/researchProject/integration/outputs/integrated_figure/elbow_plot.png", plot = elbow, width = 6, height = 4, dpi = 300)
 
 # The dimension and resolution is based on Ma et al. 2023
+obj <- RunPCA(obj, assay = "integrated", npcs = 50, verbose = FALSE, reduction.name = "integrated.pca")
 obj <- FindNeighbors(obj, reduction = "integrated.pca", dims = 1:50)
 obj <- FindClusters(obj, resolution = 1, cluster.name = "cca_clusters")
 obj <- RunUMAP(obj, reduction = "integrated.pca", dims = 1:50, reduction.name = "umap.cca")
+
+# UMAP with clusters
+DimPlot(obj, reduction = "umap.cca", group.by = "cca_clusters", label = TRUE)
+
+# UMAP by sample or condition
+DimPlot(obj, reduction = "umap.cca", group.by = "time")
+table(obj[['integrated']]$data)
+
 
 # Plot
 p1_days <- DimPlot(

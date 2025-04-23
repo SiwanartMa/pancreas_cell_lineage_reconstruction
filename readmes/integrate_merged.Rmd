@@ -30,34 +30,12 @@ human12_20W <- humanpancreas.combined.sct
 rm(humanpancreas.combined.sct)
 ```
 
-```{r}
-#obj.list <- SplitObject(obj, split.by = "time")
-separate.list <- c(human4_6W, human7_11W, human12_20W)
-features <- SelectIntegrationFeatures(
-  separate.list, nfeatures = 3000,
-  verbose = TRUE)
-```
-
 
 ```{r}
 merged_object <- readRDS("../outputs/merged_object.rds")
 merged_object
 ```
 
-
-```{r}
-VariableFeatures(obj) <- features
-
-# Downstream integration steps
-anchors <- FindIntegrationAnchors(
-  separate.list,
-  dims = 1:30,
-  anchor.features = features
-)
-```
-```{r}
-#saveRDS(anchors, file = "../outputs/anchors.rds")
-```
 
 ```{r}
 library(future)
@@ -67,13 +45,10 @@ library(patchwork)
 options(future.globals.maxSize = 1e9)
 
 mem.maxVSize(vsize = 100000)
-
-#anchors <- readRDS("../outputs/anchors.rds")
-#anchors
-#integrated <- IntegrateData(anchorset = anchors, normalization.method = "SCT")
 gc()
 
 separate.list <- c(human4_6W, human7_11W, human12_20W)
+
 features <- SelectIntegrationFeatures(
   separate.list, nfeatures = 3000,
   verbose = TRUE)
@@ -88,60 +63,5 @@ integrated <- IntegrateLayers(
   new.reduction = "integrated.pca",
   verbose = FALSE
 )
-```
-
-
-```{r}
-head(human12_20W@commands,1)
-```
-```{r}
-human4_6W@commands
-```
-```{r}
-human7_11W@commands
-```
-```{r}
-tail(human12_20W@commands,5)
-```
-```{r}
-# Visualize the number of cell counts per sample
-obj@meta.data %>% 
-  ggplot(aes(x=orig.ident, fill=orig.ident)) + 
-  geom_bar(color="black") +
-  stat_count(geom = "text", colour = "black", size = 3.5, 
-            aes(label = ..count..),
-            position=position_stack(vjust=0.5))+
-  theme_classic() +
-  theme(plot.title = element_text(hjust=0.5, face="bold")) +
-  ggtitle("Number of Cells per Sample")
-```
-
-```{r}
-# Visualize the number of cell counts in each period
-obj@meta.data %>% 
-  ggplot(aes(x=time, fill=time)) + 
-  geom_bar(color="black") +
-  stat_count(geom = "text", colour = "black", size = 3.5, 
-            aes(label = ..count..),
-            position=position_stack(vjust=0.5))+
-  theme_classic() +
-  theme(plot.title = element_text(hjust=0.5, face="bold")) +
-  ggtitle("Number of Cells per Period")
-```
-```{r}
-obj@meta.data %>% 
-    ggplot(aes(color=time, x=nCount_RNA, fill= time)) + 
-    geom_density(alpha = 0.2) + 
-    theme_classic() +
-    scale_x_log10() + 
-    geom_vline(xintercept = 650,color="red",linetype="dotted")
-
-```
-```{r}
-FeatureScatter(obj, feature1 = "percent.mt", feature2 ="nFeature_RNA" , group.by="orig.ident",split.by="time") 
-```
-```{r}
-FeatureScatter(obj, feature1 = "nCount_RNA", feature2 ="nFeature_RNA" , group.by="orig.ident",split.by="time") 
-```
 ```
 
