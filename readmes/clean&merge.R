@@ -21,13 +21,6 @@ human12_20W <- humanpancreas.combined.sct
 rm(humanpancreas.combined.sct)
 ls()
 
-# Explore the Seurat object
-# Check what assays are available
-Assays(human12_20W)
-
-# View the metadata
-head(human12_20W@meta.data)
-
 # Plot the time point each SCT assay covers
 library(ggplot2)
 library(dplyr)
@@ -85,32 +78,45 @@ obj_list <- list(human4_6W, human7_11W, human12_20W)
 # Merge
 combined <- merge(human4_6W, y = list(human7_11W, human12_20W))
 DefaultAssay(combined) <- "SCT"
-saveRDS(combined, file = "../outputs/merged_SCT.rds")
+saveRDS(combined, file = "/Users/mayongzhi/Desktop/researchProject/integration/outputs/merged_SCT.rds")
 
-# Create a long-format dataframe
-cluster_cols <- c("SCT_snn_res.0.2", "SCT_snn_res.0.1", "SCT_snn_res.0.05")
-meta_data <- combined@meta.data
-meta_data$days
-long_df <- meta_data %>%
-  select(Gestation_Age, all_of(cluster_cols)) %>%
-  pivot_longer(cols = all_of(cluster_cols), names_to = "resolution", values_to = "cluster") %>%
-  mutate(cluster = as.factor(cluster), resolution = as.factor(resolution), gestation_age = as.factor(Gestation_Age))
+# Make sure each object has only one SCT model
+human4_6W@assays$SCT #1assay
+human7_11W@assays$SCT #1assay
+human12_20W@assays$SCT #4assays
 
-# Plot
-ggplot(long_df, aes(x = cluster, fill = gestation_age)) +
-  geom_bar(position = "fill") +
-  facet_wrap(~ resolution, scales = "free_x") +
-  labs(x = "Cluster", y = "Proportion", fill = "Gestation Age") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# human12_20W has 4 SCTassays
+# Set it to NULL and rerun it
+DefaultAssay(human12_20W) <- "RNA"
+human12_20W[["SCT"]] <- NULL 
+options(future.globals.maxSize = 8 * 1024^3) # Set memory limit to 8 GB
+human12_20W <- SCTransform(human12_20W, verbose = TRUE) 
+human12_20W@assays$SCT@SCTModel.list # 1assay
+DefaultAssay(human12_20W) <- "SCT"
 
 # Set variable features and run PCA
-combined <- FindVariableFeatures(combined, assay = "SCT")
-combined <- RunPCA(combined, assay = "SCT")
+human12_20W <- FindVariableFeatures(human12_20W)
+
+# Make the object list again
+obj_list <- list(human4_6W, human7_11W, human12_20W)
+
+# Select integration features
+features <- SelectIntegrationFeatures(
+  object.list = obj_list, nfeatures = 3000,
+  verbose = TRUE)
+
+VariableFeatures(combined) <- features
+combined <- RunPCA(combined, assay = "SCT", features = features)
+
+# Make elbow plot
+ElbowPlot(combined)
+#ggsave("/Users/mayongzhi/Desktop/researchProject/integration/outputs/unintegrated_figure/elbow_combined.png")
 
 combined <- IntegrateLayers(
-  object = combined, method = CCAIntegration,
+  object = combined, 
+  method = CCAIntegration,
   normalization.method = "SCT",
+  orig.reduction = "pca",
   new.reduction = "integrated.pca",
   verbose = TRUE
 )
