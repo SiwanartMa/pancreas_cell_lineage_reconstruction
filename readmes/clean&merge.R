@@ -5,7 +5,7 @@ library(patchwork)
 
 # Load the 3 Seurat objects
 # Increase the memory
-mem.maxVSize(vsize = 90000)
+mem.maxVSize(vsize = 120000)
 
 # Load 4-6 weeks Seurat object
 load("/Users/mayongzhi/Desktop/researchProject/integration/originals/human4_6W.RData")
@@ -79,6 +79,9 @@ obj_list <- list(human4_6W, human7_11W, human12_20W)
 combined <- merge(human4_6W, y = list(human7_11W, human12_20W))
 DefaultAssay(combined) <- "SCT"
 saveRDS(combined, file = "/Users/mayongzhi/Desktop/researchProject/integration/outputs/merged_SCT.rds")
+
+# Load merged_SCT.rds
+combined <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/outputs/merged_SCT.rds")
 
 # Make sure each object has only one SCT model
 human4_6W@assays$SCT #1assay
