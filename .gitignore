@@ -1,8 +1,7 @@
 # raw data
-/originals
+originals/
 
 # outputs
-/outputs
+outputs/QC_seurat/
+outputs/trials/
 
-# metadata
-/metadata

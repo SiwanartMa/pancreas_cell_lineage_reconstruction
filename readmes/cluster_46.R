@@ -6,6 +6,7 @@ library(clustree)
 
 options(future.globals.maxSize= 8 * 1024^3)
 mem.maxVSize(vsize = 80000)
+
 # Load Seurat object
 obj <- readRDS("~/Desktop/researchProject/integration/outputs/QC_seurat/human4_6W.rds")
 
@@ -22,6 +23,9 @@ FeatureScatter(obj, "nCount_RNA", "TUBB", slot = "counts")
 
 ### Linear Dimension Reduction
 
+ElbowPlot(obj,ndims = 50)
+#ggsave("~/Desktop/researchProject/integration/outputs/QC_plot/4_6PCW_reQC/46_elbow.png")
+
 # PCA
 obj <- RunPCA(obj)
 # extract out the best 50 dimensions and save it in a new slot
@@ -29,6 +33,7 @@ obj <- RunPCA(obj)
 # visualise dim reduction
 DimPlot(obj)
 DimPlot(obj, group.by = "orig.ident")
+DimPlot(obj, group.by = "days")
 
 # Colourcode cells by gene expression
 FeaturePlot(obj, "TUBB")
@@ -43,6 +48,7 @@ obj <- RunTSNE(obj, dims = 1:50)
 
 
 DimPlot(obj, group.by = "orig.ident", reduction = "umap")
+DimPlot(obj, group.by = "days", reduction = "umap")
 DimPlot(obj, group.by = "orig.ident", reduction = "tsne")
 
 ### Clustering
@@ -59,10 +65,11 @@ for (res in res.range){
 head(obj[[]]) # The column seurat_clusters will be the last res (2) due to the for loop
 
 # Visualise clusters using clustree
-clustree <- clustree(obj, prefix = "SCT_snn_res.") # choose
-ggsave("~/Desktop/researchProject/integration/outputs/QC/46_clustree.png")
+clustree <- clustree(obj, prefix = "SCT_snn_res.")
+clustree
+ggsave("~/Desktop/researchProject/integration/outputs/QC_plot/4_6PCW_reQC/46_clustree.png")
 
-# cluster using res.1.6
+# cluster using res.1
 obj <- FindClusters(obj, resolution=1)
 
 DimPlot(obj, reduction = "umap", label = TRUE)
