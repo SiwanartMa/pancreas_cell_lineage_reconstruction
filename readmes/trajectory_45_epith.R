@@ -10,42 +10,8 @@ mem.maxVSize(vsize = 80000)
 # Load Seurat object
 obj <- readRDS("~/Desktop/researchProject/integration/outputs/QC_seurat/human4_6W.rds")
 
-# 
-epithelial_markers <- c("EPCAM", "PDX1")
-obj <- AddModuleScore(obj,
-                      features = epithelial_markers,
-                      name = "Score")
-
-obj@meta.data <- obj@meta.data %>%  
-  dplyr::rename(EPCAM_Score = Score1,
-                PDX1_Score = Score2)
-
-FeaturePlot(obj,
-            c("EPCAM_Score", "PDX1_Score"),
-            label = TRUE, 
-            min.cutoff = 0, reduction = "umap")
-
-# List of all scores to plot
-score_list <- c("EPCAM_Score", "PDX1_Score")
-
-# Generate individual violin plots with median dot and reference line
-violin_plots <- lapply(score_list, function(score) {
-  VlnPlot(obj, features = score, pt.size = 0) +
-    stat_summary(fun = median, geom = "point", size = 2, colour = "black") +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
-    NoLegend() +
-    ggtitle(score)
-})
-
-combined_plot <- wrap_plots(violin_plots, ncol = 1)
-print(combined_plot)
-
-# Save processed object
-#saveRDS(obj, file = "~/Desktop/researchProject/integration/outputs/QC_seurat/human4_6W.rds")
-
-
 # Subset for PCW 4–5 epithelial cells
-epith_4_5 <- subset(obj, subset = days %in% c("W4", "W5") & seurat_clusters %in% c(5, 12, 25, 28))
+epith_4_5 <- subset(obj, subset = days %in% c("W4", "W5") & seurat_clusters %in% c(5,12,19, 25, 28))
 
 # Normalize and find variable features
 epith_4_5 <- NormalizeData(epith_4_5)
@@ -82,24 +48,13 @@ epith_4_5 <- FindClusters(epith_4_5, resolution = 0.7)
 
 # The markers from paper
 markers <- list(
-  dorsal_MP = c(
-    "NR2F1", "ID3", "HES1", "ZFP36L2", "ID1", "STAT1", "ONECUT2",
-    "ZFP36L1", "SOX11", "SALL4", "FOXA1", "ID2", "MEIS1", "PDX1",
-    "HOXB2", "FOXA2", "SOX9", "ONECUT1", "HMGA1", "GATA4"
-  ),
-  ventral_MP = c(
-    "ID3", "ZFP36L2", "ID1", "SOX11", "ID2", "STAT1", "PTF1A",
-    "ZFP36L1", "TBX3", "HES1", "PDX1", "ONECUT3", "ONECUT1", "SOX9",
-    "GATA4", "NKX6-1", "HMGA1", "FOXA2", "SALL4", "LIN28A"
-  ),
-  PB_progenitors = c(
-    "NR2F1", "SOX6", "ISL1", "NKX6-2", "HHEX","SULT1E1"
-  ),
-  EHBD = c("NR2F1", "SOX6", "HHEX", "SPP1", "SULT1E1"),
-  enterocyte = c("TBX3", "LGALS3", "CDX2", "RFX6"),
-  hepatoblast = c("ALB", "APOA2")
+  dorsal_MP = c("PDX1", "NR2F1"),
+  ventral_MP = c("PDX1","TBX3"),
+  PB_progenitors = c("ISL1", "SULT1E1"),
+  EHBD = c("SPP1", "SULT1E1"),
+  enterocyte = c("CDX2"),
+  hepatoblast = c("ALB")
 )
-
 
 epith_4_5 <- AddModuleScore(epith_4_5,
                             features = markers,
@@ -138,14 +93,10 @@ combined_plot <- wrap_plots(violin_plots, ncol = 2)
 # Display the plot
 print(combined_plot)
 
-DotPlot(epith_4_5, c("NR2F1", "TBX3", "ISL1", "SULT1E1", "SPP1", "CDX2")) +
-  scale_color_gradient(low = "lightblue", high = "red") + coord_flip()
-#ggsave("~/Desktop/researchProject/integration/outputs/QC_plot/4_6PCW_reQC/epith_4_5_dot.png")
-
 
 # Annotate clusters
-new.cluster.ids <- c("dorsalMP", "ventralMP", "PB", "ventralMP", "Enterocyte",
-                     "EHBD", "ventralMP", "Enterocyte", "Enterocyte")
+new.cluster.ids <- c("Enterocyte", "dorsalMP", "ventralMP", "Enterocyte", "PB + EHBD",
+                     "EHBD", "EHBD", "ventralMP", "Enterocyte", "Enterocyte")
 
 names(new.cluster.ids) <- levels(epith_4_5)
 epith_4_5 <- RenameIdents(epith_4_5, new.cluster.ids)
@@ -171,7 +122,7 @@ epith_4_5$pseudotime <- slingPseudotime(sds)[,1]
 
 FeaturePlot(epith_4_5, "pseudotime", reduction = "umap", label = T,) +
   scale_color_gradient(low = "lightgreen", high = "orange")
-ggsave("~/Desktop/researchProject/integration/outputs/QC_plot/4_6PCW_reQC/epith_4_5_pseudotime.png")
+#ggsave("~/Desktop/researchProject/integration/outputs/QC_plot/4_6PCW_reQC/epith_4_5_pseudotime.png")
 
 FeatureScatter(epith_4_5, "pseudotime", "ISL1") + 
   geom_smooth() +
