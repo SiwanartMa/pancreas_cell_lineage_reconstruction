@@ -4,6 +4,7 @@ library(patchwork)
 library(BPCells)
 library(scDblFinder)
 library(tidyverse)
+library(dplyr)
 #install.packages('BPCells', repos = c('https://bnprks.r-universe.dev', 'https://cloud.r-project.org'))
 
 
@@ -16,7 +17,39 @@ for (i in c(2, 6, 8, 10)) {
 
 ctrl_tag <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/CellTag-iPSCs-Frozen.ScaleRNA_SeuratObject.rds")
 
+length(VariableFeatures(d2_tag))
 obj <- merge(x = ctrl_tag, y = list(d2_tag, d6_tag, d8_tag, d10_tag))
+
+# Assume `obj` is your Seurat object
+metadata <- obj@meta.data
+
+# Create mapping from each RT barcode (sample) to its ligation barcodes
+rt_ligation_map <- metadata %>%
+  select(RT, Ligation) %>%
+  group_by(RT) %>%
+  summarise(
+    Ligation_barcodes = paste(unique(Ligation), collapse = ", "),
+    num_cells = n(),
+    .groups = "drop"
+  )
+
+# View the mapping
+print(rt_ligation_map)
+
+# Create a mapping from i5 wells to their RT barcodes
+i5_mapping <- metadata %>%
+  select(RT, Ligation, i5) %>%
+  group_by(i5) %>%
+  summarise(
+    RT_barcodes = paste(unique(RT), collapse = ", "),
+    num_cells = n(),
+    .groups = "drop"
+  )
+
+# View the mapping
+print(i5_mapping)
+barplot(height = i5_mapping$num_cells, names.arg = i5_mapping$i5, )
+
 
 # To quantify percentage of mito genes
 obj[["percent_mito"]] <- PercentageFeatureSet(obj, pattern = "^MT-")
