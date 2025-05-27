@@ -34,7 +34,6 @@ for (dir in dirs) {
   data_list[[sample_id]] <- mat
 }
 
-
 # Get the union of all column names across all data frames
 all_cols <- unique(unlist(lapply(data_list, names)))
 
@@ -56,8 +55,10 @@ combined_data <- do.call(rbind, data_list_filled)
 dim(combined_data)
 head(combined_data)
 
+# Set the barcodes as row names
 mat <- combined_data
-mat <- mat[,-1]
+rownames(mat) <- mat$Cell.BC
+head(mat)
 
 # Extract differentiation day or iPSCs from the Sample column
 mat$Day <- sub("CellTag-(D\\d+|iPSCs).*", "\\1", mat$Sample)
@@ -86,23 +87,24 @@ for (day in unique(mat$Day)) {
 # View results
 print(tags_per_day)
 
+# Retain only CellTag columns
+mat$Day <- NULL
+mat$Cell.BC <- NULL
+
 # Perform Single Cell Data Binarization
-mat.bin$Day <- NULL
-mat.bin <- SingleCellDataBinarization(celltag.dat = mat.bin, 1)
-mat.bin
+mat.bin <- SingleCellDataBinarization(mat, 1)
+MetricPlots(mat.bin)
 
 # Filter celltags by the whitelist
 whitelist.path <- "/Users/mayongzhi/Desktop/researchProject/CellTag_practice/combined_celltags.csv"
 mat.filt <- SingleCellDataWhitelist(celltag.dat = mat.bin,
                                     whitels.cell.tag.file = whitelist.path)
 
-#mat.filt <- MetricBasedFiltering(whitelisted.celltag.data = mat.filt, cutoff = 0, comparison = "less")
 mat.filt <- MetricBasedFiltering(whitelisted.celltag.data = mat.filt, cutoff = 1, comparison = "greater")
-
+mat.filt
 mat.sim <- JaccardAnalysis(whitelisted.celltag.data = mat.filt, plot.corr = TRUE, id = "all")
 
 output.path <- "~/Desktop/researchProject/integration/outputs/ScaleRNA/celltag/"
 mat.clones <- CloneCalling(Jaccard.Matrix = mat.sim, output.dir = output.path, output.filename = "all.clones.csv", correlation.cutoff = 0.1)
 
-mat.clones
 

@@ -17,17 +17,18 @@ for (i in c(2, 6, 8, 10)) {
 
 ctrl_tag <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/CellTag-iPSCs-Frozen.ScaleRNA_SeuratObject.rds")
 
-length(VariableFeatures(d2_tag))
+# Merge all objects
 obj <- merge(x = ctrl_tag, y = list(d2_tag, d6_tag, d8_tag, d10_tag))
 
 # Assume `obj` is your Seurat object
-metadata <- obj@meta.data
+metadata <- as.data.frame(obj@meta.data)
+class(metadata)
 
 # Create mapping from each RT barcode (sample) to its ligation barcodes
 rt_ligation_map <- metadata %>%
   select(RT, Ligation) %>%
   group_by(RT) %>%
-  summarise(
+  dplyr::summarise(
     Ligation_barcodes = paste(unique(Ligation), collapse = ", "),
     num_cells = n(),
     .groups = "drop"
@@ -48,7 +49,7 @@ i5_mapping <- metadata %>%
 
 # View the mapping
 print(i5_mapping)
-barplot(height = i5_mapping$num_cells, names.arg = i5_mapping$i5, )
+
 
 
 # To quantify percentage of mito genes
@@ -98,21 +99,4 @@ vln_list <- lapply(vln_list, function(p) {
 # Combine plots with 2 columns
 wrap_plots(vln_list, ncol = 2)
 
-# Get count matrix
-raw_counts <- as.matrix(GetAssayData(obj, layer = "counts"))
-sce <- scDblFinder(, samples = obj$sample)
 
-obj <- AddMetaData(obj,
-                   metadata = sce$scDblFinder.score,
-                   col.name = "scDblFinder.score")
-obj <- AddMetaData(obj,
-                   metadata = sce$scDblFinder.class,
-                   col.name = "scDblFinder.class")
-
-table(obj[["scDblFinder.class"]])
-
-VlnPlot(d2_tag, "scDblFinder.score", group.by = "scDblFinder.class")
-
-table(obj$RT)
-table(obj$i5)
-table(obj$Ligation)
