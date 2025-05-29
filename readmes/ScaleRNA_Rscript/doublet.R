@@ -9,18 +9,18 @@ library(dplyr)
 
 # import the celltagged Seurat objects
 for (i in c(2, 6, 8, 10)) {
-  path <- glue("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/CellTag-D{i}.ScaleRNA_SeuratObject.rds")
+  path <- glue("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/CTRL-D{i}.ScaleRNA_SeuratObject.rds")
   obj <- readRDS(path)
-  assign(glue("d{i}_tag"), obj)
+  assign(glue("d{i}"), obj)
 }
 
-ctrl_tag <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/CellTag-iPSCs-Frozen.ScaleRNA_SeuratObject.rds")
+ctrl <- readRDS("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/iPSCs-Frozen.ScaleRNA_SeuratObject.rds")
 
 # Get count matrix
 setwd("/Users/mayongzhi/Desktop/researchProject/integration/originals/ScaleRNA/")
 
 # Input list of Seurat objects
-obj.names <- c("d2_tag", "d6_tag", "d8_tag", "d10_tag", "ctrl_tag")
+obj.names <- c("d2", "d6", "d8", "d10", "ctrl")
 
 for (name in obj.names) {
   # Get the object by name
