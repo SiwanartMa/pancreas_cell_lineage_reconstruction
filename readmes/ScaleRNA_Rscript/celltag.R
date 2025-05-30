@@ -78,7 +78,6 @@ tags_per_day <- setNames(numeric(0), character(0))
 for (day in unique(mat$Day)) {
   # Subset cells for that day
   day_subset <- mat[mat$Day == day, celltag_cols]
-  
   # Count how many CellTags are expressed (non-zero in any cell)
   expressed_tags <- colSums(day_subset > 0) > 0
   tags_per_day[day] <- sum(expressed_tags)
@@ -87,6 +86,7 @@ for (day in unique(mat$Day)) {
 # View results
 print(tags_per_day)
 
+
 # Retain only CellTag columns
 mat$Day <- NULL
 mat$Cell.BC <- NULL
@@ -94,11 +94,14 @@ mat$Cell.BC <- NULL
 # Perform Single Cell Data Binarization
 mat.bin <- SingleCellDataBinarization(mat, 1)
 MetricPlots(mat.bin)
+length(colnames(mat.bin))
 
 # Filter celltags by the whitelist
 whitelist.path <- "/Users/mayongzhi/Desktop/researchProject/CellTag_practice/combined_celltags.csv"
 mat.filt <- SingleCellDataWhitelist(celltag.dat = mat.bin,
                                     whitels.cell.tag.file = whitelist.path)
+MetricPlots(mat.filt)
+length(colnames(mat.filt))
 
 mat.filt <- MetricBasedFiltering(whitelisted.celltag.data = mat.filt, cutoff = 1, comparison = "greater")
 mat.filt
@@ -107,4 +110,4 @@ mat.sim <- JaccardAnalysis(whitelisted.celltag.data = mat.filt, plot.corr = TRUE
 output.path <- "~/Desktop/researchProject/integration/outputs/ScaleRNA/celltag/"
 mat.clones <- CloneCalling(Jaccard.Matrix = mat.sim, output.dir = output.path, output.filename = "all.clones.csv", correlation.cutoff = 0.1)
 
-
+saveRDS(mat.sim, "~/Desktop/researchProject/integration/outputs/ScaleRNA/celltag/mat_sim.rds")

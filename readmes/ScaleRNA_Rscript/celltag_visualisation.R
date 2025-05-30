@@ -25,6 +25,10 @@ celltag_data
 linkList <- convertCellTagMatrix2LinkList(celltag_data)
 Nodes <- getNodesfromLinkList(linkList)
 
+#celltag_data@nodes <- Nodes
+#celltag_data@network.link.list <- linkList
+
+Misc(Nodes)
 drawSubnet(celltag_data, tag = "CellTagV1", linkList = linkList, Nodes = Nodes)
 
 bar.data <- celltag_data
