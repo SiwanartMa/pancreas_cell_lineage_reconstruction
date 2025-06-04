@@ -5,6 +5,7 @@ library(scDblFinder)
 library(patchwork)
 library(ggplot2)
 library(SingleCellExperiment)
+
 options(future.globals.maxSize= 8 * 1024^3)
 mem.maxVSize(vsize = 80000)
 
