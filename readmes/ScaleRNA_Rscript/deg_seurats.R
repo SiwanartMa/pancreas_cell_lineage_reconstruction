@@ -5,6 +5,7 @@ library(tidyverse)
 library(Seurat)
 library(patchwork)
 library(dplyr)
+library(ggplot2)
 options(future.globals.maxSize= 8 * 1024^3)
 mem.maxVSize(vsize = 80000)
 
@@ -19,12 +20,20 @@ diff.markers <- read.csv("~/Desktop/researchProject/integration/metadata/scale_c
 #write.csv(diff.markers, "~/Desktop/researchProject/integration/metadata/scale_combined_diff_markers.csv")
 
 markers <- list(
-  hPSCs = c("SOX2", "OCT4", "NANOG"),
+  hPSCs = c("SOX2", "NANOG"),
   Definitive_endoderm = c("FOXA2", "SOX17", "CXCR4"),
-  Foregut = c("FOXA2", "SOX17", "PDX1", "HNF1B", "HNF6", "GATA4"),
-  Pancreatic_progenitor = c("PDX1", "NKX6-1", "SOX9", "PTF1A"),
-  Endocrine_progenitor = c("PDX1", "NKX6-1", "NGN3", "NEUROD1")
-) # OCT4, HNF6, PTF1A, NGN3, NEUROD1 are not found
+  Foregut = c("FOXA2", "SOX17", "PDX1", "HNF1B","GATA4"),
+  Pancreatic_progenitor = c("PDX1", "NKX6-1", "SOX9")
+)
+# Markers not found: OCT4, HNF6
+
+DimPlot(obj)
+DotPlot(obj, markers$hPSCs)
+DotPlot(obj, markers$Definitive_endoderm)
+DotPlot(obj, markers$Foregut)
+DotPlot(obj, markers$Pancreatic_progenitor)
+
+FeaturePlot(obj, markers$Pancreatic_progenitor, label = T)
 
 obj <- AddModuleScore(obj,
                       features = markers,

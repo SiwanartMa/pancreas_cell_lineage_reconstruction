@@ -16,12 +16,13 @@ obj <- readRDS("~/Desktop/researchProject/integration/outputs/ScaleRNA/QC_seurat
 setwd("~/Desktop/researchProject/integration/originals/ScaleRNA/")
 
 obj.filt <- subset(obj,
-                   seurat_clusters %in% c(0, 4, 7, 11))
+                   seurat_clusters %in% c(3, 4, 7, 11))
 
 DimPlot(obj.filt, reduction = "umap", label = T)
 
 # Annotate clusters
-new.cluster.ids <- c("Foregut", "Foregut", "Definitive_endoderm", "hPSC")
+new.cluster.ids <- c("Pancreatic_progenitor", "Foregut", "Definitive_endoderm", "hPSC")
+
 
 names(new.cluster.ids) <- levels(obj.filt)
 obj.filt <- RenameIdents(obj.filt, new.cluster.ids)
