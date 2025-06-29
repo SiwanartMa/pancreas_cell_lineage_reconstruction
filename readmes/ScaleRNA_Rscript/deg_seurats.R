@@ -33,9 +33,26 @@ DotPlot(obj, markers$Definitive_endoderm)
 DotPlot(obj, markers$Foregut)
 DotPlot(obj, markers$Pancreatic_progenitor)
 
-FeaturePlot(obj, markers$Pancreatic_progenitor, label = T)
+# Make Dotplot
+DotPlot(obj,markers$Pancreatic_progenitor, group.by = "seurat_clusters", dot.scale = 5) + 
+  scale_color_gradient (low = "darkslateblue", high = "brown2")+ 
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 10, face = "bold"))
 
-obj <- AddModuleScore(obj,
+
+FeaturePlot(obj, unique(unlist(markers)), label = F, ncol = 5) 
+
+p <- FeaturePlot(obj,  unique(unlist(markers)), combine = FALSE)
+
+for(i in 1:length(p)) {
+  p[[i]] <- p[[i]] + NoLegend() + NoAxes()
+}
+
+cowplot::plot_grid(plotlist = p, ncol = 5)
+
+Fobj <- AddModuleScore(obj,
                       features = markers,
                       name = "Score")
 

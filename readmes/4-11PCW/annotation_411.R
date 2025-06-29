@@ -13,8 +13,9 @@ library(patchwork)
 options(future.globals.maxSize= 8 * 1024^3)
 mem.maxVSize(vsize = 120000)
 
-obj <- readRDS("~/Desktop/researchProject/integration/outputs/QC_seurat/4_11PCW/human4_11W.rds")
-DimPlot(obj, reduction = "umap", label = T) + NoLegend()
+#obj <- readRDS("~/Desktop/researchProject/integration/outputs/QC_seurat/4_11PCW/human4_11W.rds")
+obj <- readRDS("~/Desktop/researchProject/integration/outputs/QC_seurat/4_11PCW/epith_411.rds")
+DimPlot(obj, reduction = "umap", label = T, group.by = "seurat_clusters") + NoLegend()
 
 # Retain epithelial cells
 obj.filt <- subset(obj, seurat_clusters %in% c(0, 5, 9, 10, 11, 13, 26, 29, 33))
@@ -162,6 +163,15 @@ DotPlot(obj.filt, early_epith_markers, dot.scale = 4) +
     plot.title = element_text(size = 10, face = "bold"))
 
 DotPlot(obj.filt, c("SST", "GHRL"))
+
+FeaturePlot(obj, unlist(celltype_markers), label=F)
+p <- FeaturePlot(obj, unlist(celltype_markers), combine = FALSE)
+
+for(i in 1:length(p)) {
+  p[[i]] <- p[[i]] + NoLegend() + NoAxes()
+}
+
+cowplot::plot_grid(plotlist = p)
 
 # Annotate manually
 Idents(obj.filt) <- "seurat_clusters"

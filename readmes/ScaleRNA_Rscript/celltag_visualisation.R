@@ -6,6 +6,7 @@ source("/Users/mayongzhi/Desktop/researchProject/integration/readmes/ScaleRNA_Rs
 source("/Users/mayongzhi/Desktop/researchProject/integration/readmes/ScaleRNA_Rscript/CellTag source code/function_source_for_network_visualization.R")
 
 clones <- read_csv("~/Desktop/researchProject/integration/outputs/ScaleRNA/celltag/all.clones.csv")
+clones
 colnames(clones)[1] <- "CellTagV1"
 clones
 clone.cells <- unique(c(clones$cell.barcode))

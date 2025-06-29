@@ -67,6 +67,13 @@ mat$Sample <- NULL
 # Check the new column
 table(mat$Day)
 colnames(mat)
+table(mat$AATATCGG)
+
+table(mat$Day, celltags)
+celltags <- list(colnames(mat[, 2:30]))
+celltags
+
+
 
 # Get only the CellTag columns (excluding "Day")
 celltag_cols <- setdiff(colnames(mat), "Day")

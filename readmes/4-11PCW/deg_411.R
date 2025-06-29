@@ -61,7 +61,7 @@ DotPlot(obj, c("PDX1", "NKX6-1", "SOX9")) +
 
 
 FeaturePlot(obj, c("PDX1", "NKX6-1", "SOX9"), slot = "data", ncol = 3, 
-            label = TRUE, label.size = 2)
+            label = F)
 
 # Feature plot for epithelial markers EPCAM and PDX1 
 FeaturePlot(obj, c("EPCAM", "PDX1"), label = TRUE, label.size = 3)
