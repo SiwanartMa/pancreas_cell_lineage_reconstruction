@@ -16,10 +16,13 @@ obj.filt <- readRDS("~/Desktop/researchProject/integration/outputs/ScaleRNA/QC_s
 # filtering out cells
 setwd("~/Desktop/researchProject/integration/originals/ScaleRNA/")
 
+# How many cell are there in each sample in the untransduced and transduced group
+table(obj.filt$group, obj.filt$day)
+
 obj.filt <- subset(obj,
                    seurat_clusters %in% c(3, 4, 7, 11))
 
-DimPlot(obj.filt, group.by = "seurat_clusters", reduction = "umap", label = T)
+DimPlot(obj.filt, group.by = "group", reduction = "umap", label = F)
 
 markers <- list(
   hPSCs = c("SOX2", "NANOG"),
