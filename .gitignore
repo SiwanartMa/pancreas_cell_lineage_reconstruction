@@ -2,6 +2,14 @@
 originals/
 
 # outputs
-outputs/QC_seurat/
-outputs/trials/
+outputs/
+
+# something else
+*.rds
+*.h5
+*.bam
+*.fastq
+.DS_Store
+.RData
+.Rhistory
 
