@@ -10,7 +10,7 @@ This repository contains the code and data processing pipeline used in my master
 
 - [Seurat](https://github.com/satijalab/seurat) – scRNA-seq quality control, processing, and clustering
 - [CellTag](https://github.com/morris-lab/BiddyetalWorkflow.git)- CellTag-mediated lineage tracing
-- [GEMLI](https://github.com/UPSUTER/GEMLI)(v0.1.0) – in silico lineage inference  
+- [GEMLI](https://github.com/UPSUTER/GEMLI) – in silico lineage inference  
 - R version 4.4.1 on macOS Sonoma 14.2.1
 
 The full list of R packages and versions can be found in Method section of the dissertation.
