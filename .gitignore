@@ -5,11 +5,18 @@ originals/
 outputs/
 
 # something else
+**/*.RDS
 *.rds
 *.h5
 *.bam
 *.fastq
+
+# Ignore system files
 .DS_Store
 .RData
 .Rhistory
 
+# Ignore in all folders
+**/.DS_Store
+**/.RData
+**/.Rhistory
