@@ -11,8 +11,8 @@ metadata/ # metadata summarising the analysis result
 ## Analyses were performed using:
 
 - [Seurat](v5.3.0) – scRNA-seq quality control, processing, and clustering
-- [CellTag] (https://github.com/morris-lab/BiddyetalWorkflow.git) - CellTag-mediated lineage tracing
-- [GEMLI](v0.1.0) – in silico lineage inference  
+- [[CellTag]([url]([https://github.com/morris-lab/BiddyetalWorkflow.git]))- CellTag-mediated lineage tracing
+- [[GEMLI]([url](https://github.com/UPSUTER/GEMLI))](v0.1.0) – in silico lineage inference  
 - R version 4.4.1 on macOS Sonoma 14.2.1
 
 The full list of R packages and versions can be found in Method section of the dissertation.
