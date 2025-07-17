@@ -1,10 +1,7 @@
 # In silico analysis of plasticity in the pancreatic lineages
 
-This repository contains the code and data processing pipeline used in my master's dissertation for reconstructing cell lineages and analyzing single-cell RNA-seq data from human pancreas development using CellTag, Seurat, and GEMLI.
-Raw data, metadata, and outputs are not available since there are unpublished results
-
-## Project Structure
-- scripts/  #scripts for each step of analysis
+This repository contains the code and data processing pipeline used in my master's dissertation for reconstructing cell lineages and analyzing single-cell RNA-seq data from human pancreas development using CellTag, Seurat, and GEMLI.  
+Raw data, metadata, and outputs are not available since there are unpublished information.
 
 ## Analyses were performed using:
 
