@@ -1,8 +1,7 @@
 # raw data
 originals/
-
-# outputs
 outputs/
+metadata/
 
 # something else
 **/*.RDS
