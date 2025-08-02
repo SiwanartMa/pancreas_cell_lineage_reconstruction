@@ -51,8 +51,6 @@ Utilised [GEMLI](https://github.com/UPSUTER/GEMLI) to infer lineages based on ge
 
 ## Repository Contents
 
-## Repository Contents
-
 - `readmes/`: Scripts and markdown files showing the analysis workflows and their purposes.
   - `CellTag_BAM_processing/`: Scripts to extract and quantify CellTag motifs from aligned BAM files (e.g., regex filtering, CellTag parsing).
   - `CellTag_lineages/`: R scripts to assign CellTags to cells, generate CellTag-by-cell matrices, and infer clonal relationships based on barcode overlap.
